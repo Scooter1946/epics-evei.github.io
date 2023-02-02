@@ -6,7 +6,7 @@
 	<script src="jquery-3.6.0.min.js" type="text/javascript"></script>       <!-- Makes javascript in html easier to use -->
 	<script type='text/javascript'>                                         
 	
-	//Create variable for map
+	//Creates variable for map
 	var map;  
 	//Creates an array which stores all of the locations
 	var exteriorRing = [ 
@@ -29,10 +29,12 @@
 	var showPins = true;
 	
     function GetMap() {
-        map = new Microsoft.Maps.Map('#myMap', { //Creates map object
-			mapTypeId: Microsoft.Maps.MapTypeId.aerial,   //Sets the map type to aerial view
-		});
-        Microsoft.Maps.Events.addHandler(map, 'click',getLatlng );  
+    	setTimeout(()=> {
+        	map = new Microsoft.Maps.Map('#myMap', { //Creates map object
+				mapTypeId: Microsoft.Maps.MapTypeId.aerial,   //Sets the map type to aerial view
+			});
+        	Microsoft.Maps.Events.addHandler(map, 'click',getLatlng ); 
+    	}, 1000)
     }
     
     function getLatlng(e) { 
