@@ -7,28 +7,6 @@
 	<script src="jquery-3.6.0.min.js" type="text/javascript"></script>       <!-- Makes javascript in html easier to use -->
 	<script type='text/javascript'>                                         
 	
-	if ("serial" in navigator) {
-		document.querySelector('button').addEventListener('click', async () => {
-		  // Prompt user to select any serial port.
-		  const port = await navigator.serial.requestPort();
-		});
-
-		// Prompt user to select any serial port.
-		const port = await navigator.serial.requestPort();
-
-		// Wait for the serial port to open.
-		await port.open({ baudRate: 9600 });
-		await port.close();
-	}
-	
-	navigator.serial.addEventListener("connect", (event) => {
-	  console.log("Connected");
-	});
-
-	navigator.serial.addEventListener("disconnect", (event) => {
-		console.log("Disconnected");
-	});
-	
 	//Creates variable for map
 	var map;  
 	//Creates an array which stores all of the locations
