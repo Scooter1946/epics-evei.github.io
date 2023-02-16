@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
-    <title>Polyline Creator</title>
+    <title>Geofence Creator</title>
     <meta charset="utf-8" />
 	<script src="jquery-3.6.0.min.js" type="text/javascript"></script>       <!-- Makes javascript in html easier to use -->
 	<script type='text/javascript'>                                         
@@ -171,13 +171,10 @@
 	            inCSV += "\n";  
 	    });  
 	    
-	    var hiddenElement1 = document.createElement('a');  
-	    hiddenElement1.href = 'data:text/csv;charset=utf-8,' + encodeURI(outCSV);  
-	    hiddenElement1.target = '_blank';  
-	    
-	    var hiddenElement2 = document.createElement('a');  
-	    hiddenElement2.href = 'data:text/csv;charset=utf-8,' + encodeURI(inCSV);  
-	    hiddenElement2.target = '_blank';  
+	    var coordFile = document.createElement('a');  
+	    coordFile.href = 'data:text/csv;charset=utf-8,' + encodeURI(outCSV);
+	    coordFile.href = 'data:text/csv;charset=utf-8,' + encodeURI(inCSV);
+	    coordFile.target = '_blank';  
 	      
 	    //Take input name from textbox next to download button, if empty sets to default name
 	    var inputName = document.getElementById("filename").value;
@@ -186,10 +183,8 @@
 	    }
 	    
 	    //provide the name for the CSV file to be downloaded  
-	    hiddenElement1.download = inputName + 'Out' + '.csv';  
-	    hiddenElement1.click();  
-	    hiddenElement2.download = inputName + 'In' + '.csv';  
-	    hiddenElement2.click();  
+	    coordFile.download = inputName + '.csv';
+	    coordFile.click();
 	}
 	
 	// Clears coordinate lists and map
@@ -333,7 +328,7 @@
 <body>
 	
 	<!-- Information at the top of the screen -->
-	<h1><center> Polyline Creator </center></h1>
+	<h1><center> Geofence Creator </center></h1>
 
 	<!-- Content on the left side of the screen -->
     <div id="myMap" style="position:relative;width:900px;height:600px; float:left"></div> 
@@ -366,7 +361,7 @@
 <br>
 <!-- Instructions/Information -->
 <pre style="font-size:20px;">
-<h2><center> Instructions </center></h2>
+<h2><center>Instructions</center></h2>
 <b>Map:</b> 
  - Hold and drag to pan
  - Scroll to zoom in or out
