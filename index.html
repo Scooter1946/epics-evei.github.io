@@ -4,7 +4,6 @@
 <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" /> <!-- Needed to show map through github pages -->
     <title>Geofence Creator</title>
     <meta charset="utf-8" /> <!-- Needed to show map through github pages -->
-	<script src="jquery-3.6.0.min.js" type="text/javascript"></script>       <!-- Makes javascript in html easier to use -->
 	<script type='text/javascript'>                                         
 	
 	var map;  	             // Creates variable for map
@@ -20,10 +19,10 @@
 	// Creates the map window
     function GetMap() {
     	setTimeout(()=> {
-        	map = new Microsoft.Maps.Map('#myMap', { //Creates map object
-				mapTypeId: Microsoft.Maps.MapTypeId.aerial,   //Sets the map type to aerial view
+        	map = new Microsoft.Maps.Map('#myMap', {                   //Creates map object
+				mapTypeId: Microsoft.Maps.MapTypeId.aerial,            //Sets the map type to aerial view
 			});
-        	Microsoft.Maps.Events.addHandler(map, 'click',getLatlng ); 
+        	Microsoft.Maps.Events.addHandler(map, 'click',getLatlng ); // Adds handler to detect clicking on map
     	}, 500)
     }
     
@@ -33,7 +32,7 @@
            var point = new Microsoft.Maps.Point(e.getX(), e.getY());
            var locTemp = e.target.tryPixelToLocation(point);
            var location = new Microsoft.Maps.Location(locTemp.latitude, locTemp.longitude);
-			//alert(locTemp.latitude+" & "+locTemp.longitude);
+			//alert(locTemp.latitude+" & "+locTemp.longitude);     // Use to easily test coordinate output
 			addCoordinate(locTemp.latitude, locTemp.longitude);
 			draw();
         }
@@ -41,45 +40,47 @@
     
 	// Add coordinate to lists when user clicks
 	function addCoordinate(lat, lon){
-		//const insideBox = document.querySelector('inside');
-		//alert(insideBox.checked);
-
-		//alert(lat+" & "+lon);
-		//exterior ring of polygon
+		// Add to the outside polygon
 		if (inside == false) {
+			// Creates pin object
 			var pin = new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location(lat, lon), {
     			draggable: true,
-        	    text: "" + (outCoordinates.length+1),
+        	    text: "" + (outCoordinates.length + 1),       // Number that will be visible on pin
         	    color: 'green'
         	});
-			outPins.push(pin);
+			outPins.push(pin);                                // Adds pin to pin list
 			// Adds pins to map, and create list of coordinates for polygon outline
         	for (let i = 0; i < outPins.length; i++){
-        		exteriorRing.push(outPins[i].getLocation());
+        		exteriorRing.push(outPins[i].getLocation());  // Adds pin location to exteriorRing object, which creates the filled in polygon
         	}
 		}
+		// Add to the inside polygon
 		else{
+			// Creates pin object
 			var pin = new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location(lat, lon), {
     			draggable: true,
-        	    text: "" + (inCoordinates.length+1),
+        	    text: "" + (inCoordinates.length + 1),    // Number that will be visible on pin
         	    color: 'red'
         	});
-			inPins.push(pin);
+			inPins.push(pin);                             // Adds pin to pin list
 			// Adds pins to map, and create list of coordinates for polygon outline
         	for (let i = 0; i < inPins.length; i++){
-        		innerRing.push(inPins[i].getLocation());
+        		innerRing.push(inPins[i].getLocation());  // Adds pin location to exteriorRing object, which creates the filled in polygon
         	}
 		}
 	}
 	
 	// Draws the polygon and pins on the map
 	function draw(){
-		map.entities.clear();
-    	exteriorRing = [];
-    	innerRing = [];
+		map.entities.clear();    // Clears map
+    	exteriorRing = [];       // Clears exteriorRing location list
+    	innerRing = [];          // Clear innerRing location list
+    	
+    	// Fills exteriorRing location list with outer pin coordinates
         for (let i = 0; i < outPins.length; i++){
         	exteriorRing.push(outPins[i].getLocation());
         }
+    	// Fills innerRing location list with inner pin coordinates
         for (let i = 0; i < inPins.length; i++){
         	innerRing.push(inPins[i].getLocation());
         }
@@ -111,9 +112,9 @@
         for (let i = 0; i < inPins.length; i++){
         	inCoordinates.push([[inPins[i].getLocation().latitude], [inPins[i].getLocation().longitude]]);
         }
-		listUpdate();
+		listUpdate();    // Now that we have our coordinate lists, show these on the right side
 		
-		// Erases Pins and replaces them to make sure they show the right text
+		// Update pin numbers, needed if a specific pin is deleted
 		outPins = [];
 		inPins = [];
 		for (let i = 0; i < outCoordinates.length; i++){
@@ -134,11 +135,13 @@
 			inPins.push(pin);
 			Microsoft.Maps.Events.addHandler(pin, 'dragend', function () {draw(); });
 		}	     
-		//Adds pins to map
+		
+		//Add pins to map
 		if (showPins == true){
         	map.entities.push(outPins);
         	map.entities.push(inPins);
 		}
+		
         //Add the polygon to map
         map.entities.push(outPolygon);
         map.entities.push(inPolygon);
@@ -147,25 +150,27 @@
 	// Generates and downloads the CSV file
 	function download_csv_file() {  
 	  
-	    //define the heading for each row of the data
-	    var outCSV = [];
-	    var inCSV = [];
+	    // CSV array that will be downloaded
+	    var CSV = [];
 	    
-	    //merge the data with CSV  
+	    // merge the data with CSV  
 	    outCoordinates.forEach(function(row) {  
-	            outCSV += row.join(',');  
-	            outCSV += "\n";  
-	    });  
-		
-	    //merge the data with CSV  
+	            CSV += row.join(',');  
+	            CSV += "\n";  
+	    });
+	    
+	    // Creates header to split inner coordinates from outer coordinates in CSV file
+	    CSV += "INNER";
+	    CSV += "\n";
+	    
+	    // merge the data with CSV  
 	    inCoordinates.forEach(function(row) {  
-	            inCSV += row.join(',');  
-	            inCSV += "\n";  
+	            CSV += row.join(',');  
+	            CSV += "\n";  
 	    });  
 	    
 	    var coordFile = document.createElement('a');  
-	    coordFile.href = 'data:text/csv;charset=utf-8,' + encodeURI(outCSV);
-	    coordFile.href = 'data:text/csv;charset=utf-8,' + encodeURI(inCSV);
+	    coordFile.href = 'data:text/csv;charset=utf-8,' + encodeURI(CSV);
 	    coordFile.target = '_blank';  
 	      
 	    //Take input name from textbox next to download button, if empty sets to default name
