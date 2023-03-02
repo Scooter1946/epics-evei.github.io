@@ -54,6 +54,7 @@
         		exteriorRing.push(outPins[i].getLocation());  // Adds pin location to exteriorRing object, which creates the filled in polygon
         	}
 		}
+		
 		// Add to the inside polygon
 		else{
 			// Creates pin object
@@ -63,6 +64,7 @@
         	    color: 'red'
         	});
 			inPins.push(pin);                             // Adds pin to pin list
+			
 			// Adds pins to map, and create list of coordinates for polygon outline
         	for (let i = 0; i < inPins.length; i++){
         		innerRing.push(inPins[i].getLocation());  // Adds pin location to exteriorRing object, which creates the filled in polygon
@@ -153,13 +155,17 @@
 	    // CSV array that will be downloaded
 	    var CSV = [];
 	    
+	    // Creates header for outer coordinates in CSV file
+	    CSV += "OUTER";
+	    CSV += "\n";
+	    
 	    // merge the data with CSV  
 	    outCoordinates.forEach(function(row) {  
 	            CSV += row.join(',');  
 	            CSV += "\n";  
 	    });
 	    
-	    // Creates header to split inner coordinates from outer coordinates in CSV file
+	    // Creates header for inner coordinates in CSV file
 	    CSV += "INNER";
 	    CSV += "\n";
 	    
@@ -282,7 +288,6 @@
 			element.appendChild(deleteButton); 
 			element.appendChild(newLine);
   		});  
-		
 	}
 	
 	// Toggles whether the pins are being show on the map
