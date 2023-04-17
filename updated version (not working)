@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" /> <!-- Needed to show map through github pages -->
+    <title>Geofence Creator</title>
+    <meta charset="utf-8" /> <!-- Needed to show map through github pages -->
+	<script type='text/javascript'>                                         
+	
+	var map;  	             // Creates variable for map
+	var exteriorRing = []; 	 // Creates an array which stores all of the outside locations
+	var innerRing = [];      // Creates an array which stores all of the inside locations
+	var inside = false;      // Shows whether we are editing the inside or outside polygon
+	var outCoordinates = []; // Coordinate array which will be exported to CSV in the end
+	var inCoordinates = [];  // Coordinate array which will be exported to CSV in the end
+	var outPins = [];        // List that stores Pins
+	var inPins = [];         // List that stores moveable Pins
+	var showPins = true;     // Boolean for whether the pins are shown or not
+	var safeDist = 0;
+	
+	// Creates the map window
+    function GetMap() {
+    	setTimeout(()=> {
+        	map = new Microsoft.Maps.Map('#myMap', {                   //Creates map object
+				mapTypeId: Microsoft.Maps.MapTypeId.aerial,            //Sets the map type to aerial view
+			});
+        	Microsoft.Maps.Events.addHandler(map, 'click',getLatlng ); // Adds handler to detect clicking on map
+    	}, 500)
+    }
+    
+	// Retrieves coordinates where user clicks
+    function getLatlng(e) { 
+        if (e.targetType == "map") {
+           var point = new Microsoft.Maps.Point(e.getX(), e.getY());
+           var locTemp = e.target.tryPixelToLocation(point);
+           var location = new Microsoft.Maps.Location(locTemp.latitude, locTemp.longitude);
+			//alert(locTemp.latitude+" & "+locTemp.longitude);     // Use to easily test coordinate output
+			addCoordinate(locTemp.latitude, locTemp.longitude);
+			draw();
+        }
+    }
+    
+	// Add coordinate to lists when user clicks
+	function addCoordinate(lat, lon){
+		// Add to the outside polygon
+		if (inside == false) {
+			// Creates pin object
+			var pin = new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location(lat, lon), {
+    			draggable: true,
+        	    text: "" + (outCoordinates.length + 1),       // Number that will be visible on pin
+        	    color: 'green'
+        	});
+			outPins.push(pin);                                // Adds pin to pin list
+			// Adds pins to map, and create list of coordinates for polygon outline
+        	for (let i = 0; i < outPins.length; i++){
+        		exteriorRing.push(outPins[i].getLocation());  // Adds pin location to exteriorRing object, which creates the filled in polygon
+        	}
+		}
+		
+		// Add to the inside polygon
+		else{
+			// Creates pin object
+			var pin = new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location(lat, lon), {
+    			draggable: true,
+        	    text: "" + (inCoordinates.length + 1),    // Number that will be visible on pin
+        	    color: 'red'
+        	});
+			inPins.push(pin);                             // Adds pin to pin list
+			
+			// Adds pins to map, and create list of coordinates for polygon outline
+        	for (let i = 0; i < inPins.length; i++){
+        		innerRing.push(inPins[i].getLocation());  // Adds pin location to exteriorRing object, which creates the filled in polygon
+        	}
+		}
+	}
+	
+	// Draws the polygon and pins on the map
+	function draw(){
+		map.entities.clear();    // Clears map
+    	exteriorRing = [];       // Clears exteriorRing location list
+    	innerRing = [];          // Clear innerRing location list
+    	
+    	// Fills exteriorRing location list with outer pin coordinates
+        for (let i = 0; i < outPins.length; i++){
+        	exteriorRing.push(outPins[i].getLocation());
+        }
+    	// Fills innerRing location list with inner pin coordinates
+        for (let i = 0; i < inPins.length; i++){
+        	innerRing.push(inPins[i].getLocation());
+        }
+        
+    	//Create a polygon based off of exteriorRing array
+    	var outPolygon = new Microsoft.Maps.Polygon(exteriorRing, { //Creates polygon object with array of coordinates at input
+       		fillColor: 'rgba(0, 255, 0, 0.5)',
+       		strokeColor: 'green',
+       		strokeThickness: 2
+   		});
+    	
+    	//Create a polygon based off of innerRing array
+    	if (innerRing.length != 0){
+    		var inPolygon = new Microsoft.Maps.Polygon(innerRing, { //Creates polygon object with array of coordinates at input
+        		fillColor: 'rgba(255, 0, 0, 0.5)',
+       	 		strokeColor: 'red',
+        		strokeThickness: 2
+    		});
+		}
+    	
+		// Creates array of coordinates for the website coordinate list
+		outCoordinates = [];
+        for (let i = 0; i < outPins.length; i++){
+        	outCoordinates.push([[outPins[i].getLocation().latitude], [outPins[i].getLocation().longitude]]);
+        }
+		
+		// Creates array of coordinates for the website coordinate list
+		inCoordinates = [];
+        for (let i = 0; i < inPins.length; i++){
+        	inCoordinates.push([[inPins[i].getLocation().latitude], [inPins[i].getLocation().longitude]]);
+        }
+		listUpdate();    // Now that we have our coordinate lists, show these on the right side
+		
+		// Update pin numbers, needed if a specific pin is deleted
+		outPins = [];
+		inPins = [];
+		for (let i = 0; i < outCoordinates.length; i++){
+			var pin = new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location(outCoordinates[i][0], outCoordinates[i][1]), {
+    			draggable: true,
+    	        text: "" + (i+1),
+    	        color: "green"
+    	    });
+			outPins.push(pin);
+			Microsoft.Maps.Events.addHandler(pin, 'dragend', function () {draw(); });
+		}	
+		for (let i = 0; i < inCoordinates.length; i++){
+			var pin = new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location(inCoordinates[i][0], inCoordinates[i][1]), {
+    			draggable: true,
+    	        text: "" + (i+1),
+    	        color: "red"
+    	    });
+			inPins.push(pin);
+			Microsoft.Maps.Events.addHandler(pin, 'dragend', function () {draw(); });
+		}	     
+		
+		//Add pins to map
+		if (showPins == true){
+        	map.entities.push(outPins);
+        	map.entities.push(inPins);
+		}
+		
+        //Add the polygon to map
+        map.entities.push(outPolygon);
+        map.entities.push(inPolygon);
+        if (outCoordinates.length >= 3) {
+        	drawSafety();
+        }
+	}
+	
+	function drawSafety()
+	{
+        var newLat; 
+        var newLong;
+        var slope1;
+        var slope2;
+        var angle1;
+        var angle2;
+        var xDisplace1;
+        var yDisplace1;
+        var xDisplace2;
+        var yDisplace2;
+        var distance;
+        var safetyCoords = [];
+        
+        distance = safeDist / 111139; // Converts from meters to lat/long
+        
+        for (let i = 0; i < outCoordinates.length; i++)
+        {
+        	x2 = outCoordinates[i][0];
+        	y2 = outCoordinates[i][1];
+        	if (i == 0)
+        	{
+        		x1 = outCoordinates[outCoordinates.length - 1][0];
+            	y1 = outCoordinates[outCoordinates.length - 1][1];
+            	x3 = outCoordinates[i+1][0];
+            	y3 = outCoordinates[i+1][1];
+        	}
+        	else if (i == outCoordinates.length - 1)
+        	{
+    			x1 = outCoordinates[i-1][0];
+        		y1 = outCoordinates[i-1][1];
+        		x3 = outCoordinates[0][0];
+        		y3 = outCoordinates[0][1];
+        	}
+        	else
+        	{
+        		x1 = outCoordinates[i-1][0];
+            	y1 = outCoordinates[i-1][1];
+            	x3 = outCoordinates[i+1][0];
+            	y3 = outCoordinates[i+1][1];
+        	}
+        		
+        	slope1 = (y1 - y2) / (x1 - x2);
+        	slope2 = (y2 - y3) / (x2 - x3);
+        	
+        	angle1 = Math.atan(slope1);
+        	angle2 = Math.atan(slope2);
+        	
+        	xDisplace1 = distance * Math.cos(90 + angle1);
+        	yDisplace1 = distance * Math.sin(90 + angle1);
+        	xDisplace2 = distance * Math.cos(90 - angle2);
+        	yDisplace2 = distance * Math.cos(90 - angle2);
+        
+        	newLat = -(slope2 * x2 + slope2 * xDisplace2 + yDisplace2 - slope1 * x2 - slope1 * xDisplace1 + yDisplace1) / (slope1 - slope2);
+			newLong = (+slope1 * +newLat) - (+slope1 * (+x2 + +xDisplace1)) + (+y2 + +yDisplace1);
+			
+			//alert(newLong);
+			safetyCoords.push([newLat, newLong]);
+        }
+		
+        var safetyPins = [];
+        
+		for (let i = 0; i < safetyCoords.length; i++){
+			var pin = new Microsoft.Maps.Pushpin(new Microsoft.Maps.Location(safetyCoords[i][0], safetyCoords[i][1]), {
+    	        color: "yellow"
+    	    });
+			safetyPins.push(pin);
+		}	 
+    	map.entities.push(safetyPins);
+    	
+    	var safetyLoc = [];
+    	
+    	// Fills exteriorRing location list with outer pin coordinates
+        for (let i = 0; i < safetyPins.length; i++){
+        	safetyLoc.push(safetyPins[i].getLocation());
+        }
+        
+    	var safetyPolygon = new Microsoft.Maps.Polygon(safetyLoc, { //Creates polygon object with array of coordinates at input
+       		fillColor: 'rgba(255, 255, 0, 0.5)',
+       		strokeColor: 'yellow',
+       		strokeThickness: 2
+   		});
+        map.entities.push(safetyPolygon);
+	}
+	
+	// Generates and downloads the CSV file
+	function download_csv_file() {  
+	  
+	    // CSV array that will be downloaded
+	    var CSV = [];
+	    
+	    // Creates header for outer coordinates in CSV file
+	    CSV += "OUTER";
+	    CSV += "\n";
+	    
+	    // merge the data with CSV  
+	    outCoordinates.forEach(function(row) {  
+	            CSV += row.join(',');  
+	            CSV += "\n";  
+	    });
+	    
+	    // Creates header for inner coordinates in CSV file
+	    CSV += "INNER";
+	    CSV += "\n";
+	    
+	    // merge the data with CSV  
+	    inCoordinates.forEach(function(row) {  
+	            CSV += row.join(',');  
+	            CSV += "\n";  
+	    });  
+	    
+	    var coordFile = document.createElement('a');  
+	    coordFile.href = 'data:text/csv;charset=utf-8,' + encodeURI(CSV);
+	    coordFile.target = '_blank';  
+	      
+	    //Take input name from textbox next to download button, if empty sets to default name
+	    var inputName = document.getElementById("filename").value;
+	    if (inputName == ''){
+	    	inputName = 'coordinates';
+	    }
+	    
+	    //provide the name for the CSV file to be downloaded  
+	    coordFile.download = inputName + '.csv';
+	    coordFile.click();
+	}
+	
+	// Clears coordinate lists and map
+	function clearCoords() {
+		exteriorRing = [];
+		innerRing = [];
+		outCoordinates = [];
+		inCoordinates = [];
+		outPins = [];
+		inPins = [];
+    	map.entities.clear()
+		listUpdate();
+	}
+	
+	// Deletes a specific coordinate
+	function deleteCoord(index, pins){
+		pins.splice(index - 1, 1);
+		draw();
+	}
+	
+	// Updates the visible coordinate list
+	function listUpdate(){
+		document.getElementById("coordList").innerHTML = "";
+		n = 0;
+		//Loops through the entire coordinates list
+		// Exterior ring
+		var element = document.getElementById("coordList");
+		element.appendChild(document.createElement("p").appendChild(document.createTextNode("Exterior Coordinates:")));
+		//Makes new Line
+		var newLine = document.createElement("p");
+		var text = document.createTextNode("\n");
+		newLine.appendChild(text);
+		element.appendChild(newLine);
+		outCoordinates.forEach(function(row) {  
+			n+=1;
+			
+			//Creates paragraph listing latitude and longitude
+			var coords = document.createElement("p");
+			coords.style.display = "inline"; //Allows the buttons to be next to the text
+			var text = document.createTextNode(n + ". (" + row[0] + ", " + row[1] + ")\t\t");
+			coords.appendChild(text);
+			   
+			//Creates Delete Button
+			let deleteButton = document.createElement("button");
+			deleteButton.innerHTML = "Delete";
+			deleteButton.name = "Delete_Button_" + n;
+			deleteButton.value = n;
+			deleteButton.addEventListener("click", function () {
+			deleteCoord(deleteButton.value, outPins);
+			});
+			
+			//Makes new Line
+			var newLine = document.createElement("p");
+			var text = document.createTextNode("\n");
+			newLine.appendChild(text);
+			
+			//Appends to the div class(under "List of coordinates:")
+			element.appendChild(coords);
+			element.appendChild(deleteButton); 
+			element.appendChild(newLine);
+  		});  
+		
+		// Inner ring
+		// Inner ring header
+		element.appendChild(document.createElement("p").appendChild(document.createTextNode("Inner Coordinates:")));
+		//Makes new Line
+		var newLine = document.createElement("p");
+		var text = document.createTextNode("\n");
+		newLine.appendChild(text);
+		element.appendChild(newLine);
+		n = 0;
+		inCoordinates.forEach(function(row) {  
+			n+=1;
+			
+			//Creates paragraph listing latitude and longitude
+			var coords = document.createElement("p");
+			coords.style.display = "inline"; //Allows the buttons to be next to the text
+			var text = document.createTextNode(n + ". (" + row[0] + ", " + row[1] + ")\t\t");
+			coords.appendChild(text);
+			   
+			//Creates Delete Button
+			let deleteButton = document.createElement("button");
+			deleteButton.innerHTML = "Delete";
+			deleteButton.name = "Delete_Button_" + n;
+			deleteButton.value = n;
+			deleteButton.addEventListener("click", function () {
+			deleteCoord(deleteButton.value, inPins);
+			});
+			
+			//Makes new Line
+			var newLine = document.createElement("p");
+			var text = document.createTextNode("\n");
+			newLine.appendChild(text);
+			
+			//Appends to the div class(under "List of coordinates:")
+			var element = document.getElementById("coordList");
+			element.appendChild(coords);
+			element.appendChild(deleteButton); 
+			element.appendChild(newLine);
+  		});  
+	}
+	
+	// Toggles whether the pins are being show on the map
+	function showHide()
+	{
+		if (showPins == true){
+			showPins = false;
+	        for (let i = 0; i < outPins.length; i++){
+	        	outPins[i].setOptions({ visible: false });
+	        }
+	        for (let i = 0; i < inPins.length; i++){
+	        	inPins[i].setOptions({ visible: false });
+	        }
+			draw();
+		}
+	    else{
+			showPins = true;
+	        for (let i = 0; i < outPins.length; i++){
+	        	outPins[i].setOptions({ visible: true });
+	        }
+	        for (let i = 0; i < inPins.length; i++){
+	        	inPins[i].setOptions({ visible: true });
+	        }
+			draw();
+	    }
+	}
+	
+	// Toggles whether we are editing the inside or outside polygon
+	function inOut()
+	{
+		if (inside == true){
+			inside = false;
+		}
+	    else{
+	    	inside = true;
+	    }
+	}
+	
+	function changeDist(direction)
+	{
+		if (direction == 1)
+		{
+			safeDist = safeDist + 10;
+			draw();
+		}
+		else
+		{
+			safeDist = safeDist - 10;
+			draw();
+		}
+	}
+	
+    </script>
+    <script type='text/javascript' src='http://www.bing.com/api/maps/mapcontrol?callback=GetMap&key=AuVQsmBa4y5laNovY6SJpXohxaDHbRI0kR8nZcw2lGNxQiQG6jV_Dax7sJMdDmju' async defer></script>
+</head>
+<body>
+	
+	<!-- Website header -->
+	<h1><center> Geofence Creator </center></h1>
+
+	<!-- Content on the left side of the screen -->
+    <div id="myMap" style="position:relative;width:900px;height:600px; float:left"></div> 
+    
+	<!-- Content on the right side of the screen -->
+	<div style="width: 500px; float:left; height:595px; border-style:solid">
+	
+	<h2> List of coordinates: </h2>
+	
+	<!-- Create a new div which will contain the list of coordinates and buttons to interact -->
+	<div id="coordList" style="height: 475px; overflow-y: scroll;"></div>
+	<br>
+	
+	<!-- Creates button to clear map and lists -->
+	<button onclick="clearCoords()"> Clear All </button>
+	
+	<!-- Creates button to show or hide pins -->
+	<button onclick="showHide()"> Show/Hide Pins </button>
+	
+	<!-- Creates button to toggle inside/outside polygon -->
+	<button onclick="inOut()"> Inside/Outside Polygon </button>
+	
+	<!-- Creates button to toggle inside/outside polygon -->
+	<button onclick="changeDist(1)">-</button>
+	
+	<!-- Creates button to toggle inside/outside polygon -->
+	<button onclick="changeDist(2)">+</button>
+	
+	</div>
+	
+	<!-- Creates button to download csv -->
+	<button onclick="download_csv_file()"> Download CSV File </button>
+	<input type="text" placeholder="filename" id="filename">.csv</input>
+</body>
+<br>
+<br>
+<!-- Instructions/Information -->
+<pre style="font-size:20px;">
+<h2><center>Instructions</center></h2>
+<b>Map:</b> 
+ - Hold and drag to pan
+ - Scroll to zoom in or out
+ - Click on the map to draw the outline of the polygon
+	Note: Coordinates may not be as accurate in Birds Eye View
+ - Drag the pins in order to move specific coordinates
+
+<b>List of Coordinates:</b>
+ - Coordinate display: Show latitude and longitude of every point, with number corresponding to numbers on map
+ - Delete button: Delete specific coordinates from map
+ - Scroll Wheel: Scroll through entire list of coordinates if too long
+ - Clear All button: Delete all coordinates and restart
+ - Show/Hide Pins button: Show or hide the pins on the map
+
+<b>CSV File Download:</b>
+ - Filename textbox: Enter the name of the coordinate file you want to download
+	Note: Default name is "coordinates.csv"
+	Note: CSV file is 2 columns with 1 row for every coordinate. Column 1 is latitudes and column 2 is longitudes
+ - Download button: Download CSV file, you can view this file in excel
+</pre>
+
+</html>
