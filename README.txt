@@ -1,6 +1,6 @@
-Read Trent Jerome's Work and Accomplishments for Fall 2022 for information about the design of the website.
+Read Trent Jerome's Work and Accomplishments for Fall 2022 for information about the website.
 
- - Hosts website at: https://epics-evei.github.io/
+ - Hosts static website at: https://epics-evei.github.io/
  - Instructions located at bottom of website
  - Creates coordinates.csv file if you don't type anything in csv file. If you download more than one a (1) is automatically added so you will have to rename file.
  - Updated version contains code that creates the safety region however it doesn't work properly.
