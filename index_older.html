@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+<title>Geofence Creator (Azure Maps)</title>
+
+<!-- Azure Maps SDK -->
+<link rel="stylesheet" href="https://atlas.microsoft.com/sdk/css/atlas.min.css">
+<script src="https://atlas.microsoft.com/sdk/js/atlas.min.js?api-version=2.1"></script>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1 {
+    text-align: center;
+    margin: 20px 0;
+  }
+
+  #container {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 0 20px;
+  }
+
+  #myMap {
+    width: 900px;
+    height: 600px;
+    border: 1px solid #ccc;
+    margin-right: 20px;
+  }
+
+  #sidebar {
+    width: 500px;
+    height: 595px;
+    border: 1px solid #000;
+    padding: 10px;
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+
+  pre {
+    clear: both;
+    padding: 20px;
+    font-size: 16px;
+    white-space: pre-wrap;
+  }
+
+  button {
+    margin: 5px 0;
+    padding: 5px 10px;
+  }
+
+  input {
+    margin-left: 10px;
+  }
+
+  .atlas-control-container {
+  bottom: 10px !important;
+  right: 10px !important;
+  opacity: 0.35 !important;        /* makes it faint */
+  transition: opacity 0.3s;
+}
+.atlas-control-container:hover {
+  opacity: 0.8 !important;         /* readable when you hover */
+}
+</style>
+</head>
+
+<body onload="initializeMap()">
+
+<h1>Geofence Creator (Azure Maps)</h1>
+
+<div id="container">
+  <!-- Map -->
+  <div id="myMap"></div>
+
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <h2>List of Coordinates:</h2>
+    <div id="coordList" style="height:475px; overflow-y:auto;"></div>
+    <button onclick="clearCoords()">Clear All</button>
+  </div>
+</div>
+
+<!-- CSV Download -->
+<div style="padding:20px;">
+  <button onclick="download_csv_file()">Download CSV File</button>
+  <input type="text" placeholder="filename" id="filename" style="width:200px;">.csv
+</div>
+
+<!-- Instructions -->
+<pre>
+<b>Instructions</b>
+• Click on the map to plot points. After 3 points, a polygon will form automatically.  
+• Use “Clear All” to reset and start again.  
+• Click “Download CSV File” to export latitude/longitude pairs.  
+• Run this page with VS Code Live Server or host it on GitHub Pages (file:// URLs won’t load Azure Maps).  
+</pre>
+
+<script>
+let map, datasource, polygon, outCoordinates = [];
+
+// ---------------------- Initialize Azure Map -----------------------
+function initializeMap() {
+    map = new atlas.Map('myMap', {
+    center: [-86.914, 40.425], // Example: Purdue University
+    zoom: 16,
+    view: 'Auto',
+    authOptions: {
+      authType: 'subscriptionKey',
+      subscriptionKey: azureKey
+    }
+  });
+
+  map.events.add('ready', () => {
+    console.log("Azure Map loaded successfully");
+    datasource = new atlas.source.DataSource();
+    map.sources.add(datasource);
+    map.events.add('click', addPoint);
+
+    // --- Hide accessibility help popup dynamically ---
+    const hideAccessibilityHelp = () => {
+      document.querySelectorAll('.atlas-map-accessibility-help').forEach(el => {
+        el.style.display = 'none';
+      });
+    };
+
+    // Run once immediately
+    hideAccessibilityHelp();
+
+    // Watch for any new accessibility help elements that appear later
+    const observer = new MutationObserver(() => hideAccessibilityHelp());
+    observer.observe(document.body, { childList: true, subtree: true });
+  });
+}
+
+// ---------------------- Add Point to Map ----------------------------
+function addPoint(e) {
+  if (!e.position) return;
+
+  const [lon, lat] = e.position;
+  outCoordinates.push([lat, lon]);
+
+  datasource.clear();
+  datasource.add(new atlas.data.Point([lon, lat]));
+
+  if (outCoordinates.length > 2) {
+    const ring = outCoordinates.map(c => [c[1], c[0]]);
+    ring.push(ring[0]); // close shape
+    polygon = new atlas.data.Polygon([ring]);
+    datasource.add(polygon);
+  }
+  listUpdate();
+}
+
+// ---------------------- Clear All Points ----------------------------
+function clearCoords() {
+  outCoordinates = [];
+  datasource && datasource.clear();
+  listUpdate();
+}
+
+// ---------------------- Download CSV -------------------------------
+function download_csv_file() {
+  if (!outCoordinates.length) return alert("No coordinates to download!");
+  let csv = "LAT,LON\n";
+  outCoordinates.forEach(c => csv += c.join(',') + "\n");
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
+  a.download = (document.getElementById("filename").value || "coordinates") + ".csv";
+  a.click();
+}
+
+// ---------------------- Update Sidebar List ------------------------
+function listUpdate() {
+  const el = document.getElementById("coordList");
+  el.innerHTML = "<b>Coordinates:</b><br>";
+  outCoordinates.forEach((c, i) => {
+    const p = document.createElement("p");
+    p.textContent = `${i + 1}. (${c[0].toFixed(6)}, ${c[1].toFixed(6)})`;
+    el.appendChild(p);
+  });
+}
+</script>
+</body>
+</html>
