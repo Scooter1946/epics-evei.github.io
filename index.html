@@ -308,6 +308,34 @@
         font-size: 0.9em;
         flex: 1;
     }
+
+    /* ===== Top Quick Instructions Bar ===== */
+    .quick-instructions {
+        background: #eef3f8;
+        border-left: 5px solid #3498db;
+        border-radius: 6px;
+        padding: 10px 16px;
+        font-size: 14px;
+        color: #34495e;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        flex-grow: 1;
+    }
+
+    .jump-instructions {
+        padding: 6px 14px;
+        font-size: 14px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        background: #3498db;
+        color: white;
+        transition: background 0.3s ease, transform 0.1s ease;
+    }
+
+    .jump-instructions:hover {
+        background: #2980b9;
+        transform: translateY(-1px);
+    }
 </style>
 </head>
 
@@ -317,6 +345,15 @@
     <header class="site-header">
         <h1>Geofence Creator (Leaflet + OpenStreetMap)</h1>
     </header>
+
+    <!-- Quick Instructions Bar -->
+    <div style="display:flex; align-items:center; gap:10px; margin-top:10px;">
+        <div class="quick-instructions">
+            <strong>Quick Instructions:</strong>
+            Click to add points • Toggle modes for outer/inner • Drag pins to adjust
+        </div>
+        <button class="jump-instructions" onclick="scrollToInstructions()">Full Instructions</button>
+    </div>
 
     <!-- Main content container -->
     <div class="main-container">
@@ -352,110 +389,132 @@
 
     <!-- Instructions section -->
     <div class="instructions">
-        <h2>Instructions</h2>
-        <div class="instruction-grid">
-            <!-- Map Section -->
-            <div class="instruction-section">
-                <div class="section-header">
-                    <i class="section-icon">🗺️</i>
-                    <h3>Map Controls</h3>
-                </div>
-                <ul class="feature-list">
-                    <li>
-                        <span class="feature-title">Navigation:</span>
-                        <span class="feature-desc">Click and drag to pan, scroll to zoom.</span>
-                    </li>
-                    <li>
-                        <span class="feature-title">Drawing:</span>
-                        <span class="feature-desc">
-                            Click on the map to drop points. Points in <b>Outer mode</b> create the exterior boundary.
-                            Points in <b>Inner mode</b> create exclusion zones (holes).
-                        </span>
-                    </li>
-                    <li>
-                        <span class="feature-title">Adjusting Points:</span>
-                        <span class="feature-desc">
-                            Drag markers to fine-tune positions, or delete them from the coordinate list and re-add.
-                        </span>
-                    </li>
-                    <li class="note">
-                        <span class="note-icon">📝</span>
-                        <span>Higher zoom levels give more precise coordinates.</span>
-                    </li>
-                </ul>
+    <h2>Instructions</h2>
+
+    <div class="instruction-grid">
+
+        <!-- MAP CONTROLS BOX -->
+        <div class="instruction-section">
+            <div class="section-header">
+                <i class="section-icon">🗺️</i>
+                <h3>Map Controls</h3>
             </div>
 
-            <!-- Coordinates Section -->
-            <div class="instruction-section">
-                <div class="section-header">
-                    <i class="section-icon">📍</i>
-                    <h3>Coordinate Management</h3>
-                </div>
-                <ul class="feature-list">
-                    <li>
-                        <span class="feature-title">Display:</span>
-                        <span class="feature-desc">
-                            View numbered latitude/longitude pairs for the outer boundary and each inner polygon.
-                        </span>
-                    </li>
-                    <li>
-                        <span class="feature-title">Controls:</span>
-                        <span class="feature-desc">
-                            Delete individual points, clear all geometry, or toggle pin visibility to view just the polygons.
-                        </span>
-                    </li>
-                    <li>
-                        <span class="feature-title">Boundaries:</span>
-                        <span class="feature-desc">
-                            Use the mode toggle to switch between editing the outer polygon and inner polygons (holes).
-                            Use <b>“Start New Inner Polygon”</b> to create multiple inner exclusion zones.
-                        </span>
-                    </li>
-                    <li class="note">
-                        <span class="note-icon">📝</span>
-                        <span>Create the outer boundary first, then define one or more inner polygons if needed.</span>
-                    </li>
-                </ul>
-            </div>
+            <ul class="feature-list">
 
-            <!-- CSV Export Section -->
-            <div class="instruction-section">
-                <div class="section-header">
-                    <i class="section-icon">📊</i>
-                    <h3>Data Export</h3>
-                </div>
-                <ul class="feature-list">
-                    <li>
-                        <span class="feature-title">File Format:</span>
-                        <span class="feature-desc">
-                            CSV containing latitude and longitude pairs. Outer coordinates are grouped under <b>OUTER</b>,
-                            inner (hole) coordinates under <b>INNER</b>.
-                        </span>
-                    </li>
-                    <li>
-                        <span class="feature-title">Naming:</span>
-                        <span class="feature-desc">
-                            Custom filename supported. Defaults to <i>coordinates.csv</i> if left blank.
-                        </span>
-                    </li>
-                    <li>
-                        <span class="feature-title">Structure:</span>
-                        <span class="feature-desc">
-                            <b>OUTER</b><br>
-                            lat,lon<br>
-                            …<br><br>
-                            <b>INNER</b><br>
-                            lat,lon (for all inner polygons combined)
-                        </span>
-                    </li>
-                    <li class="note">
-                        <span class="note-icon">📝</span>
-                        <span>CSV opens cleanly in Excel, Google Sheets, and most GIS tools.</span>
-                    </li>
-                </ul>
-            </div>
+                <li>
+                    <span class="feature-title"><strong>Navigation:</strong></span>
+                    <span class="feature-desc">
+                        Click and drag to pan the map; scroll to zoom.
+                    </span>
+                </li>
+
+                <li>
+                    <span class="feature-title"><strong>Drawing the Geofence Boundaries:</strong></span>
+                    <span class="feature-desc">
+                        Click on the map to place a <strong>coordinate point</strong>.  
+                        When multiple points are dropped, they connect in the order added to form a closed boundary.  
+                        Points can be repositioned by <strong>clicking</strong> and <strong>dragging</strong> them on the map.  
+                        <strong>Delete</strong> points in the <strong>Coordinate Panel</strong> using the delete button next to each point.
+                    </span>
+                </li>
+
+                <li class="note">
+                    <span class="note-icon">📝</span>
+                    <span><strong>Tip #1:</strong> Zoom in to place more precise coordinate points.</span>
+                </li>
+            </ul>
         </div>
+
+        <!-- COORDINATE PANEL BOX -->
+        <div class="instruction-section">
+            <div class="section-header">
+                <i class="section-icon">📍</i>
+                <h3>Coordinate Panel</h3>
+            </div>
+
+            <ul class="feature-list">
+
+                <li>
+                    <span class="feature-title"><strong>Information Shown:</strong></span>
+                    <span class="feature-desc">
+                        A <strong>list of coordinate points</strong> for the outer boundary appears first,  
+                        followed by a list of points for any inner boundaries.  
+                        Latitude and longitude values are displayed to the right of each point.
+                    </span>
+                </li>
+
+                <li>
+                    <span class="feature-title"><strong>Controls:</strong></span>
+                    <span class="feature-desc">
+                        You can delete individual coordinate points or click <strong>Clear All</strong> to restart entirely.  
+                        Toggling <strong>Show/Hide Pins</strong> will show or hide point markers without hiding the geofence boundary itself.
+                    </span>
+                </li>
+
+                <li>
+                    <span class="feature-title"><strong>Input Modes:</strong></span>
+                    <span class="feature-desc">
+                        <strong>Outer boundary mode:</strong> Points connect to form an outer boundary,  
+                        which restricts where the kart can travel. Only one outer boundary can be created.  
+                        <br><br>
+                        <strong>Inner boundary mode:</strong> Coordinate points connect to form a hole (inner boundary)  
+                        inside the outer boundary where the kart cannot go.  
+                        Clicking <strong>Start New Inner Boundary</strong> allows you to create multiple holes.
+                    </span>
+                </li>
+
+                <li class="note">
+                    <span class="note-icon">📝</span>
+                    <span><strong>Tip #2:</strong> Create the entire outer boundary first, then define one or more inner boundaries if needed.</span>
+                </li>
+
+            </ul>
+        </div>
+
+        <!-- DATA EXPORT BOX -->
+        <div class="instruction-section">
+            <div class="section-header">
+                <i class="section-icon">📊</i>
+                <h3>Data Export</h3>
+            </div>
+
+            <ul class="feature-list">
+
+                <li>
+                    <span class="feature-title"><strong>File Format:</strong></span>
+                    <span class="feature-desc">
+                        Click <strong>Download CSV File</strong> to save a comma-separated values file  
+                        containing your geofence bounds.  
+                        This file is named <strong>coordinates.csv</strong> by default.
+                    </span>
+                </li>
+
+                <li>
+                    <span class="feature-title"><strong>Structure:</strong></span>
+                    <span class="feature-desc">
+                        Inside the file, outer coordinates are grouped under <strong>OUTER</strong>,  
+                        and inner boundary coordinates under <strong>INNER</strong>.  
+                        Each coordinate is stored as a latitude–longitude pair (<strong>lat, lon</strong>).
+                    </span>
+                </li>
+
+                <li class="note">
+                    <span class="note-icon">📝</span>
+                    <span><strong>Tip #3:</strong> CSV files can be opened cleanly in <strong>Excel</strong>, <strong>Google Sheets</strong>, and most data management software.</span>
+                </li>
+
+                <li class="note">
+                    <span class="note-icon">📝</span>
+                    <span><strong>Tip #4:</strong> For compatibility, use the default file name (<strong>coordinates.csv</strong>).</span>
+                </li>
+
+            </ul>
+        </div>
+
     </div>
+</div>
+
 
 <script>
 /* ====== Leaflet Geofence Logic (Outer + Multiple Inner Holes) ====== */
@@ -476,6 +535,11 @@ let innerMarkers = [];     // [ [L.marker, ...], [L.marker, ...], ... ]
 let inside = false;        // false = outer mode, true = inner mode
 let currentInnerRing = -1; // index in innerRings when in inner mode
 let showPins = true;
+
+// Layers for shapes
+let polygonLayer = null;
+let previewLine = null;
+
 
 // Initialize Leaflet map
 function initializeMap() {
@@ -506,7 +570,6 @@ function onMapClick(e) {
     } else {
         // INNER mode: ensure we have a current ring
         if (currentInnerRing === -1 || !innerRings[currentInnerRing]) {
-            // Create first inner ring automatically
             innerRings.push([]);
             innerMarkers.push([]);
             currentInnerRing = innerRings.length - 1;
@@ -530,27 +593,41 @@ function startNewInnerRing() {
     listUpdate();
 }
 
-// Rebuild all markers + polygon(s)
+// Rebuild markers (full redraw) and then shapes
 function draw() {
+    // Clear only markers from group by resetting layer group
     geofenceLayer.clearLayers();
+    polygonLayer = null;
+    previewLine = null;
+
     outerMarkers = [];
     innerMarkers = innerRings.map(() => []);
 
     // Build outer markers
     outerCoords.forEach((c, i) => {
         const marker = L.marker([c.lat, c.lng], {
-            draggable: true
+            draggable: true,
+            icon: L.divIcon({
+                className: 'outer-marker-icon',
+                html: `<div style="background:#27ae60;border-radius:50%;width:16px;height:16px;border:2px solid white;box-shadow:0 0 2px rgba(0,0,0,0.5);"></div>
+                       <span style="position:absolute;font-size:11px;font-weight:600;color:#2c3e50;top:-18px;left:-5px;">O${i+1}</span>`,
+                iconSize: [18, 18],
+                iconAnchor: [9, 9]
+            })
         });
+
+        marker.on('add', () => marker.setZIndexOffset(1000));
 
         marker._ringType = 'outer';
         marker._ringIndex = 0;
         marker._pointIndex = i;
 
-        marker.on('dragend', (e) => {
+        // Smooth live drag: only update coords + shapes
+        marker.on('drag', (e) => {
             const m = e.target;
             const pos = m.getLatLng();
             outerCoords[m._pointIndex] = { lat: pos.lat, lng: pos.lng };
-            draw();
+            updateShapes();
         });
 
         outerMarkers.push(marker);
@@ -566,21 +643,24 @@ function draw() {
                 draggable: true,
                 icon: L.divIcon({
                     className: 'inner-marker-icon',
-                    html: '<div style="background:#e74c3c;border-radius:50%;width:14px;height:14px;border:2px solid white;box-shadow:0 0 2px rgba(0,0,0,0.5);"></div>',
+                    html: `<div style="background:#e74c3c;border-radius:50%;width:14px;height:14px;border:2px solid white;box-shadow:0 0 2px rgba(0,0,0,0.5);"></div>
+                           <span style="position:absolute;font-size:10px;font-weight:600;color:#c0392b;top:-16px;left:-8px;">H${rIndex+1}-${i+1}</span>`,
                     iconSize: [14, 14],
                     iconAnchor: [7, 7]
                 })
             });
 
+            marker.on('add', () => marker.setZIndexOffset(1000));
+
             marker._ringType = 'inner';
             marker._ringIndex = rIndex;
             marker._pointIndex = i;
 
-            marker.on('dragend', (e) => {
+            marker.on('drag', (e) => {
                 const m = e.target;
                 const pos = m.getLatLng();
                 innerRings[m._ringIndex][m._pointIndex] = { lat: pos.lat, lng: pos.lng };
-                draw();
+                updateShapes();
             });
 
             innerMarkers[rIndex].push(marker);
@@ -590,25 +670,68 @@ function draw() {
         });
     });
 
-    // Build polygon with holes if outerCoords has at least 3 points
+    // After markers are rebuilt, update polygon + preview
+    updateShapes();
+    listUpdate();
+}
+
+// Update polygon (filled + holes) and preview line live
+function updateShapes() {
+    // --- Polygon with holes ---
     if (outerCoords.length >= 3) {
         const outerLatLngs = outerCoords.map(c => [c.lat, c.lng]);
-
         const holes = innerRings
             .filter(ring => ring.length >= 3)
             .map(ring => ring.map(c => [c.lat, c.lng]));
 
-        const polygon = L.polygon([outerLatLngs, ...holes], {
-            color: '#27ae60',
-            weight: 2,
-            fillColor: 'rgba(46, 204, 113, 0.3)',
-            fillOpacity: 0.3
-        });
+        const latlngs = [outerLatLngs, ...holes];
 
-        geofenceLayer.addLayer(polygon);
+        if (polygonLayer) {
+            polygonLayer.setLatLngs(latlngs);
+        } else {
+            polygonLayer = L.polygon(latlngs, {
+                color: '#27ae60',
+                weight: 2,
+                fillColor: 'rgba(46, 204, 113, 0.3)',
+                fillOpacity: 0.3,
+                interactive: false
+            });
+            geofenceLayer.addLayer(polygonLayer);
+        }
+    } else {
+        if (polygonLayer) {
+            geofenceLayer.removeLayer(polygonLayer);
+            polygonLayer = null;
+        }
     }
 
-    listUpdate();
+    // --- Preview line (Option B: outer or current inner ring) ---
+    let coords = null;
+
+    if (inside && currentInnerRing !== -1 && innerRings[currentInnerRing] && innerRings[currentInnerRing].length > 1) {
+        coords = innerRings[currentInnerRing].map(c => [c.lat, c.lng]);
+    } else if (outerCoords.length > 1) {
+        coords = outerCoords.map(c => [c.lat, c.lng]);
+    }
+
+    if (coords) {
+        if (previewLine) {
+            previewLine.setLatLngs(coords);
+        } else {
+            previewLine = L.polyline(coords, {
+                color: '#34495e',
+                weight: 2,
+                dashArray: '6, 6',
+                opacity: 0.7
+            });
+            geofenceLayer.addLayer(previewLine);
+        }
+    } else {
+        if (previewLine) {
+            geofenceLayer.removeLayer(previewLine);
+            previewLine = null;
+        }
+    }
 }
 
 // Clear all geometry
@@ -620,6 +743,9 @@ function clearCoords() {
     currentInnerRing = -1;
 
     if (geofenceLayer) geofenceLayer.clearLayers();
+    polygonLayer = null;
+    previewLine = null;
+
     listUpdate();
 }
 
@@ -652,6 +778,7 @@ function inOut() {
             currentInnerRing = 0;
         }
     }
+    updateShapes();
     listUpdate();
 }
 
@@ -783,6 +910,12 @@ function download_csv_file() {
     coordFile.download = inputName + '.csv';
     coordFile.click();
 }
+
+// ===== Scroll to Full Instructions Section =====
+function scrollToInstructions() {
+    document.querySelector(".instructions").scrollIntoView({ behavior: "smooth" });
+}
+
 </script>
 
 </body>
