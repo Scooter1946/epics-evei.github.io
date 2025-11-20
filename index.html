@@ -308,6 +308,34 @@
         font-size: 0.9em;
         flex: 1;
     }
+
+    /* ===== Top Quick Instructions Bar ===== */
+    .quick-instructions {
+        background: #eef3f8;
+        border-left: 5px solid #3498db;
+        border-radius: 6px;
+        padding: 10px 16px;
+        font-size: 14px;
+        color: #34495e;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        flex-grow: 1;
+    }
+
+    .jump-instructions {
+        padding: 6px 14px;
+        font-size: 14px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        background: #3498db;
+        color: white;
+        transition: background 0.3s ease, transform 0.1s ease;
+    }
+
+    .jump-instructions:hover {
+        background: #2980b9;
+        transform: translateY(-1px);
+    }
 </style>
 </head>
 
@@ -317,6 +345,15 @@
     <header class="site-header">
         <h1>Geofence Creator (Leaflet + OpenStreetMap)</h1>
     </header>
+
+    <!-- Quick Instructions Bar -->
+    <div style="display:flex; align-items:center; gap:10px; margin-top:10px;">
+        <div class="quick-instructions">
+            <strong>Quick Instructions:</strong>
+            Click to add points • Toggle modes for outer/inner • Drag pins to adjust
+        </div>
+        <button class="jump-instructions" onclick="scrollToInstructions()">Full Instructions</button>
+    </div>
 
     <!-- Main content container -->
     <div class="main-container">
@@ -477,6 +514,11 @@ let inside = false;        // false = outer mode, true = inner mode
 let currentInnerRing = -1; // index in innerRings when in inner mode
 let showPins = true;
 
+// Layers for shapes
+let polygonLayer = null;
+let previewLine = null;
+
+
 // Initialize Leaflet map
 function initializeMap() {
     map = L.map('myMap').setView([40.425, -86.914], 16); // Purdue-ish
@@ -506,7 +548,6 @@ function onMapClick(e) {
     } else {
         // INNER mode: ensure we have a current ring
         if (currentInnerRing === -1 || !innerRings[currentInnerRing]) {
-            // Create first inner ring automatically
             innerRings.push([]);
             innerMarkers.push([]);
             currentInnerRing = innerRings.length - 1;
@@ -530,27 +571,41 @@ function startNewInnerRing() {
     listUpdate();
 }
 
-// Rebuild all markers + polygon(s)
+// Rebuild markers (full redraw) and then shapes
 function draw() {
+    // Clear only markers from group by resetting layer group
     geofenceLayer.clearLayers();
+    polygonLayer = null;
+    previewLine = null;
+
     outerMarkers = [];
     innerMarkers = innerRings.map(() => []);
 
     // Build outer markers
     outerCoords.forEach((c, i) => {
         const marker = L.marker([c.lat, c.lng], {
-            draggable: true
+            draggable: true,
+            icon: L.divIcon({
+                className: 'outer-marker-icon',
+                html: `<div style="background:#27ae60;border-radius:50%;width:16px;height:16px;border:2px solid white;box-shadow:0 0 2px rgba(0,0,0,0.5);"></div>
+                       <span style="position:absolute;font-size:11px;font-weight:600;color:#2c3e50;top:-18px;left:-5px;">O${i+1}</span>`,
+                iconSize: [18, 18],
+                iconAnchor: [9, 9]
+            })
         });
+
+        marker.on('add', () => marker.setZIndexOffset(1000));
 
         marker._ringType = 'outer';
         marker._ringIndex = 0;
         marker._pointIndex = i;
 
-        marker.on('dragend', (e) => {
+        // Smooth live drag: only update coords + shapes
+        marker.on('drag', (e) => {
             const m = e.target;
             const pos = m.getLatLng();
             outerCoords[m._pointIndex] = { lat: pos.lat, lng: pos.lng };
-            draw();
+            updateShapes();
         });
 
         outerMarkers.push(marker);
@@ -566,21 +621,24 @@ function draw() {
                 draggable: true,
                 icon: L.divIcon({
                     className: 'inner-marker-icon',
-                    html: '<div style="background:#e74c3c;border-radius:50%;width:14px;height:14px;border:2px solid white;box-shadow:0 0 2px rgba(0,0,0,0.5);"></div>',
+                    html: `<div style="background:#e74c3c;border-radius:50%;width:14px;height:14px;border:2px solid white;box-shadow:0 0 2px rgba(0,0,0,0.5);"></div>
+                           <span style="position:absolute;font-size:10px;font-weight:600;color:#c0392b;top:-16px;left:-8px;">H${rIndex+1}-${i+1}</span>`,
                     iconSize: [14, 14],
                     iconAnchor: [7, 7]
                 })
             });
 
+            marker.on('add', () => marker.setZIndexOffset(1000));
+
             marker._ringType = 'inner';
             marker._ringIndex = rIndex;
             marker._pointIndex = i;
 
-            marker.on('dragend', (e) => {
+            marker.on('drag', (e) => {
                 const m = e.target;
                 const pos = m.getLatLng();
                 innerRings[m._ringIndex][m._pointIndex] = { lat: pos.lat, lng: pos.lng };
-                draw();
+                updateShapes();
             });
 
             innerMarkers[rIndex].push(marker);
@@ -590,25 +648,68 @@ function draw() {
         });
     });
 
-    // Build polygon with holes if outerCoords has at least 3 points
+    // After markers are rebuilt, update polygon + preview
+    updateShapes();
+    listUpdate();
+}
+
+// Update polygon (filled + holes) and preview line live
+function updateShapes() {
+    // --- Polygon with holes ---
     if (outerCoords.length >= 3) {
         const outerLatLngs = outerCoords.map(c => [c.lat, c.lng]);
-
         const holes = innerRings
             .filter(ring => ring.length >= 3)
             .map(ring => ring.map(c => [c.lat, c.lng]));
 
-        const polygon = L.polygon([outerLatLngs, ...holes], {
-            color: '#27ae60',
-            weight: 2,
-            fillColor: 'rgba(46, 204, 113, 0.3)',
-            fillOpacity: 0.3
-        });
+        const latlngs = [outerLatLngs, ...holes];
 
-        geofenceLayer.addLayer(polygon);
+        if (polygonLayer) {
+            polygonLayer.setLatLngs(latlngs);
+        } else {
+            polygonLayer = L.polygon(latlngs, {
+                color: '#27ae60',
+                weight: 2,
+                fillColor: 'rgba(46, 204, 113, 0.3)',
+                fillOpacity: 0.3,
+                interactive: false
+            });
+            geofenceLayer.addLayer(polygonLayer);
+        }
+    } else {
+        if (polygonLayer) {
+            geofenceLayer.removeLayer(polygonLayer);
+            polygonLayer = null;
+        }
     }
 
-    listUpdate();
+    // --- Preview line (Option B: outer or current inner ring) ---
+    let coords = null;
+
+    if (inside && currentInnerRing !== -1 && innerRings[currentInnerRing] && innerRings[currentInnerRing].length > 1) {
+        coords = innerRings[currentInnerRing].map(c => [c.lat, c.lng]);
+    } else if (outerCoords.length > 1) {
+        coords = outerCoords.map(c => [c.lat, c.lng]);
+    }
+
+    if (coords) {
+        if (previewLine) {
+            previewLine.setLatLngs(coords);
+        } else {
+            previewLine = L.polyline(coords, {
+                color: '#34495e',
+                weight: 2,
+                dashArray: '6, 6',
+                opacity: 0.7
+            });
+            geofenceLayer.addLayer(previewLine);
+        }
+    } else {
+        if (previewLine) {
+            geofenceLayer.removeLayer(previewLine);
+            previewLine = null;
+        }
+    }
 }
 
 // Clear all geometry
@@ -620,6 +721,9 @@ function clearCoords() {
     currentInnerRing = -1;
 
     if (geofenceLayer) geofenceLayer.clearLayers();
+    polygonLayer = null;
+    previewLine = null;
+
     listUpdate();
 }
 
@@ -652,6 +756,7 @@ function inOut() {
             currentInnerRing = 0;
         }
     }
+    updateShapes();
     listUpdate();
 }
 
@@ -783,6 +888,12 @@ function download_csv_file() {
     coordFile.download = inputName + '.csv';
     coordFile.click();
 }
+
+// ===== Scroll to Full Instructions Section =====
+function scrollToInstructions() {
+    document.querySelector(".instructions").scrollIntoView({ behavior: "smooth" });
+}
+
 </script>
 
 </body>
