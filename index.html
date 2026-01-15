@@ -408,7 +408,10 @@
     </div>
 
     <!-- Instructions section -->
-<<<<<<< HEAD
+   <!-- Instructions section -->
+<div class="instructions">
+    <h2>Instructions</h2>
+
     <div class="instruction-grid">
 
         <!-- Map Controls -->
@@ -417,250 +420,112 @@
                 <i class="section-icon">🗺️</i>
                 <h3>Map Controls</h3>
             </div>
+
             <ul class="feature-list">
-    
                 <li>
                     <span class="feature-title">Navigation:</span>
                     <span class="feature-desc">
-                        • Click and drag to pan the map.  
-                        • Scroll to zoom in or out for finer precision.
+                        Click and drag to pan the map. Scroll to zoom in or out for finer precision.
                     </span>
                 </li>
-    
+
                 <li>
                     <span class="feature-title">Drawing the Geofence Boundaries:</span>
                     <span class="feature-desc">
-                        • Click anywhere on the map to <b>place a coordinate point</b>.  
-                        • When multiple points are placed, they connect in order to form the boundary.  
-                        • Drag markers to reposition points.  
-                        • Remove points using the delete button in the Coordinate Panel.
-                    </span>
-                </li>
-    
-                <li>
-                    <span class="feature-title">Tip #1:</span>
-                    <span class="feature-desc">
-                        Zoom in to place more precise coordinates.
-                    </span>
-                </li>
-    
-            </ul>
-        </div>
-    
-        <!-- Coordinate Panel -->
-=======
-    <div class="instructions">
-    <h2>Instructions</h2>
-
-    <div class="instruction-grid">
-
-        <!-- MAP CONTROLS BOX -->
-        <div class="instruction-section">
-            <div class="section-header">
-                <i class="section-icon">🗺️</i>
-                <h3>Map Controls</h3>
-            </div>
-
-            <ul class="feature-list">
-
-                <li>
-                    <span class="feature-title"><strong>Navigation:</strong></span>
-                    <span class="feature-desc">
-                        Click and drag to pan the map; scroll to zoom.
-                    </span>
-                </li>
-
-                <li>
-                    <span class="feature-title"><strong>Drawing the Geofence Boundaries:</strong></span>
-                    <span class="feature-desc">
-                        Click on the map to place a <strong>coordinate point</strong>.  
-                        When multiple points are dropped, they connect in the order added to form a closed boundary.  
-                        Points can be repositioned by <strong>clicking</strong> and <strong>dragging</strong> them on the map.  
-                        <strong>Delete</strong> points in the <strong>Coordinate Panel</strong> using the delete button next to each point.
+                        Click anywhere on the map to <strong>place a coordinate point</strong>.  
+                        When multiple points are placed, they connect in order to form the boundary.  
+                        Drag markers to reposition points.  
+                        Remove points using the delete button in the Coordinate Panel.
                     </span>
                 </li>
 
                 <li class="note">
                     <span class="note-icon">📝</span>
-                    <span><strong>Tip #1:</strong> Zoom in to place more precise coordinate points.</span>
+                    <span><strong>Tip #1:</strong> Zoom in to place more precise coordinates.</span>
                 </li>
             </ul>
         </div>
 
-        <!-- COORDINATE PANEL BOX -->
->>>>>>> e6b4a86aa5cd485fe4e3b4837dc2a536a9cb35dd
+        <!-- Coordinate Panel -->
         <div class="instruction-section">
             <div class="section-header">
                 <i class="section-icon">📍</i>
                 <h3>Coordinate Panel</h3>
             </div>
-<<<<<<< HEAD
+
             <ul class="feature-list">
-    
                 <li>
                     <span class="feature-title">Information Shown:</span>
                     <span class="feature-desc">
-                        • A list of coordinate points for the outer boundary appears first.  
-                        • Inner boundary coordinates (holes) follow.  
-                        • Latitude and longitude values are shown for each point.
+                        Outer boundary coordinates appear first, followed by any inner boundary coordinates.  
+                        Latitude and longitude values are shown for each point.
                     </span>
                 </li>
-    
+
                 <li>
                     <span class="feature-title">Controls:</span>
                     <span class="feature-desc">
-                        • Delete individual points or click <b>Clear All</b> to reset everything.  
-                        • Use <b>Show/Hide Pins</b> to toggle marker visibility without removing the geofence.
+                        Delete individual points or click <strong>Clear All</strong> to reset everything.  
+                        Use <strong>Show/Hide Pins</strong> to toggle marker visibility.
                     </span>
                 </li>
-    
+
                 <li>
                     <span class="feature-title">Input Modes:</span>
                     <span class="feature-desc">
-                        • <b>Outer boundary mode:</b> Points connect to form the main boundary where the kart is allowed.  
-                        • <b>Inner boundary mode:</b> Points form a hole (restricted area) inside the outer boundary.  
-                        • Click <b>Start New Inner Boundary</b> to create multiple holes.
-                    </span>
-                </li>
-    
-                <li>
-                    <span class="feature-title">Tip #2:</span>
-                    <span class="feature-desc">
-                        Complete the entire outer boundary first, then add any inner boundaries.
-                    </span>
-                </li>
-    
-            </ul>
-        </div>
-    
-        <!-- Data Export -->
-=======
-
-            <ul class="feature-list">
-
-                <li>
-                    <span class="feature-title"><strong>Information Shown:</strong></span>
-                    <span class="feature-desc">
-                        A <strong>list of coordinate points</strong> for the outer boundary appears first,  
-                        followed by a list of points for any inner boundaries.  
-                        Latitude and longitude values are displayed to the right of each point.
-                    </span>
-                </li>
-
-                <li>
-                    <span class="feature-title"><strong>Controls:</strong></span>
-                    <span class="feature-desc">
-                        You can delete individual coordinate points or click <strong>Clear All</strong> to restart entirely.  
-                        Toggling <strong>Show/Hide Pins</strong> will show or hide point markers without hiding the geofence boundary itself.
-                    </span>
-                </li>
-
-                <li>
-                    <span class="feature-title"><strong>Input Modes:</strong></span>
-                    <span class="feature-desc">
-                        <strong>Outer boundary mode:</strong> Points connect to form an outer boundary,  
-                        which restricts where the kart can travel. Only one outer boundary can be created.  
+                        <strong>Outer boundary mode:</strong> Creates the main geofence.  
                         <br><br>
-                        <strong>Inner boundary mode:</strong> Coordinate points connect to form a hole (inner boundary)  
-                        inside the outer boundary where the kart cannot go.  
-                        Clicking <strong>Start New Inner Boundary</strong> allows you to create multiple holes.
+                        <strong>Inner boundary mode:</strong> Creates holes inside the outer boundary.  
+                        Click <strong>Start New Inner Boundary</strong> to create multiple holes.
                     </span>
                 </li>
 
                 <li class="note">
                     <span class="note-icon">📝</span>
-                    <span><strong>Tip #2:</strong> Create the entire outer boundary first, then define one or more inner boundaries if needed.</span>
+                    <span><strong>Tip #2:</strong> Complete the outer boundary before adding inner boundaries.</span>
                 </li>
-
             </ul>
         </div>
 
-        <!-- DATA EXPORT BOX -->
->>>>>>> e6b4a86aa5cd485fe4e3b4837dc2a536a9cb35dd
+        <!-- Data Export -->
         <div class="instruction-section">
             <div class="section-header">
                 <i class="section-icon">📊</i>
                 <h3>Data Export</h3>
             </div>
-<<<<<<< HEAD
+
             <ul class="feature-list">
-    
                 <li>
                     <span class="feature-title">File Format:</span>
                     <span class="feature-desc">
-                        Click <b>Download CSV File</b> to save a CSV containing your geofence coordinates.  
-                        The file is named <i>coordinates.csv</i> by default unless you provide a custom name.
+                        Click <strong>Download CSV File</strong> to export your geofence coordinates.  
+                        Default filename is <strong>coordinates.csv</strong>.
                     </span>
                 </li>
-    
+
                 <li>
                     <span class="feature-title">Structure:</span>
                     <span class="feature-desc">
-                        • Outer boundary coordinates are grouped under <b>OUTER</b>.  
-                        • Inner boundary coordinates are grouped under <b>INNER</b>.  
-                        • Each coordinate is saved as <code>lat,lon</code>.
-                    </span>
-                </li>
-    
-                <li>
-                    <span class="feature-title">Tip #3:</span>
-                    <span class="feature-desc">
-                        CSV files open cleanly in Excel, Google Sheets, and most data tools.
-                    </span>
-                </li>
-    
-                <li>
-                    <span class="feature-title">Tip #4:</span>
-                    <span class="feature-desc">
-                        Use the default filename unless working with multiple geofence versions.
-                    </span>
-                </li>
-    
-            </ul>
-        </div>
-    
-    </div>
-    
-=======
-
-            <ul class="feature-list">
-
-                <li>
-                    <span class="feature-title"><strong>File Format:</strong></span>
-                    <span class="feature-desc">
-                        Click <strong>Download CSV File</strong> to save a comma-separated values file  
-                        containing your geofence bounds.  
-                        This file is named <strong>coordinates.csv</strong> by default.
-                    </span>
-                </li>
-
-                <li>
-                    <span class="feature-title"><strong>Structure:</strong></span>
-                    <span class="feature-desc">
-                        Inside the file, outer coordinates are grouped under <strong>OUTER</strong>,  
-                        and inner boundary coordinates under <strong>INNER</strong>.  
-                        Each coordinate is stored as a latitude–longitude pair (<strong>lat, lon</strong>).
+                        Outer coordinates are grouped under <strong>OUTER</strong>.  
+                        Inner boundary coordinates are grouped under <strong>INNER</strong>.  
+                        Each row contains <code>lat, lon</code>.
                     </span>
                 </li>
 
                 <li class="note">
                     <span class="note-icon">📝</span>
-                    <span><strong>Tip #3:</strong> CSV files can be opened cleanly in <strong>Excel</strong>, <strong>Google Sheets</strong>, and most data management software.</span>
+                    <span><strong>Tip #3:</strong> CSV files open cleanly in Excel and Google Sheets.</span>
                 </li>
 
                 <li class="note">
                     <span class="note-icon">📝</span>
-                    <span><strong>Tip #4:</strong> For compatibility, use the default file name (<strong>coordinates.csv</strong>).</span>
+                    <span><strong>Tip #4:</strong> Use default filenames unless versioning multiple geofences.</span>
                 </li>
-
             </ul>
         </div>
 
     </div>
 </div>
-
->>>>>>> e6b4a86aa5cd485fe4e3b4837dc2a536a9cb35dd
-
 <script>
 /* ====== Leaflet Geofence Logic (Outer + Multiple Inner Holes) ====== */
 
